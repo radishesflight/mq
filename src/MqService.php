@@ -7,7 +7,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class MqService implements MqHandlingInterFace
+class MqService
 {
     public $connection;
     public $channel;
@@ -59,13 +59,13 @@ class MqService implements MqHandlingInterFace
      * 消费消息常驻
      * @return void
      */
-    public function consumePermanent()
+    public function consumePermanent($callback)
     {
-        $callback = function ($msg) {
+        $enhancedCallback = function ($msg)use($callback) {
             try {
                 echo 'Received message: ', $msg->body, "\n";
                 // 处理消息
-                $this->handle($msg->body);
+                $callback($msg);
                 // 确认消息
                 $msg->ack();
             } catch (Exception $e) {
@@ -74,7 +74,7 @@ class MqService implements MqHandlingInterFace
             }
         };
         // 设置基本消费
-        $this->channel->basic_consume($this->queue, '', false, false, false, false, $callback);
+        $this->channel->basic_consume($this->queue, '', false, false, false, false, $enhancedCallback);
 
         // 循环等待消息
         while ($this->channel->is_consuming()) {
@@ -82,7 +82,7 @@ class MqService implements MqHandlingInterFace
         }
     }
 
-    public function consume($limit = 100)
+    public function consume($callback,$limit = 100)
     {
         // 拉取消息
         for ($i = 0; $i < $limit; $i++) {
@@ -90,7 +90,7 @@ class MqService implements MqHandlingInterFace
             $message = $this->channel->basic_get($this->queue, false);
             if ($message !== null) {
                 try {
-                    $this->handle($message->body);
+                    $callback($message->body);
                     // 手动确认消息
                     $this->channel->basic_ack($message->getDeliveryTag());
                 } catch (Exception $e) {
@@ -114,10 +114,5 @@ class MqService implements MqHandlingInterFace
     {
         $this->channel->close();
         $this->connection->close();
-    }
-
-    public function handle($message)
-    {
-        // TODO: Implement handle() method.
     }
 }
