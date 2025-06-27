@@ -65,7 +65,7 @@ class MqService
             try {
                 echo 'Received message: ', $msg->body, "\n";
                 // 处理消息
-                $callback($msg);
+                $callback($msg->body);
                 // 确认消息
                 $msg->ack();
             } catch (Exception $e) {
