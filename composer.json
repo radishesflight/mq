@@ -1,0 +1,26 @@
+{
+    "name": "radishesflight/mq",
+    "description": "RabbitMQ",
+    "type": "library",
+    "keywords": [
+        "mq",
+        "RabbitMQ"
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "php-amqplib/php-amqplib": "^3.6|*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "radishesflight",
+            "email": "aradishesflight@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "RadishesFlight\\Mq\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
