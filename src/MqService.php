@@ -63,7 +63,6 @@ class MqService
     {
         $enhancedCallback = function ($msg)use($callback) {
             try {
-                echo 'Received message: ', $msg->body, "\n";
                 // 处理消息
                 $callback($msg->body);
                 // 确认消息
