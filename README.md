@@ -19,13 +19,13 @@ RabbitMQ
         ]);
        //插入消息json字符串
         $obj->sendMessage('{"name":"hello"}');
-        //实时消费消息
+        //手动消费消息
         $obj->consume(function ($data){
             //$data就是插入消息队列的内容
             dd($data);
             //业务代码
         });
-        //手动消费消息
+        //实时消费消息
         $obj->consumePermanent(function ($data){
             //$data就是插入消息队列的内容
             dd($data);
