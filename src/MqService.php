@@ -81,23 +81,16 @@ class MqService
         }
     }
 
-    public function consume($callback,$limit = 100)
+    public function consume($callback, $limit = 100)
     {
         // 拉取消息
         for ($i = 0; $i < $limit; $i++) {
             // 禁用自动确认
             $message = $this->channel->basic_get($this->queue, false);
             if ($message !== null) {
-                try {
-                    $callback($message->body);
-                    // 手动确认消息
-                    $this->channel->basic_ack($message->getDeliveryTag());
-                } catch (Exception $e) {
-                    // 处理错误，例如日志记录
-                    // 这里你可以选择不确认消息，这样消息会被重新排队
-                    // 或者你可以使用basic_nack来拒绝消息
-                    $this->channel->basic_nack($message->getDeliveryTag(), false, true);
-                }
+                $callback($message->body, $this->channel, $message->getDeliveryTag());
+                // 手动确认消息
+                $this->channel->basic_ack($message->getDeliveryTag());
             } else {
                 break; // 如果没有消息了，跳出循环
             }
