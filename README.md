@@ -1,5 +1,7 @@
 # mq
+
 RabbitMQ
+
 ```php
         //配置文件
         $host = env('mq.host', '');
@@ -37,4 +39,25 @@ RabbitMQ
             dd($data);
             //业务代码
         });
+     //一次性获取1000条数据，统一处理，
+        $obj->consumeReturnData(function ($data, AMQPChannel $channel) {
+            dd($data);
+            // noAck为false,需要手动确认消费消息
+            //可以直接确认小于最后的一条的所有消息 例如:
+            // $channel->basic_ack(max(array_keys($data)));
+        }, true, false, 1000);
+
+        //一次性获取1000条数据，单条处理 noAck为false,需要手动确认消费消息
+        $obj->consumeReturnData(function ($data, AMQPChannel $channel) {
+            foreach ($data as $key => $datum) {
+                try {
+                    //手动确认消费消息  $key就是消息的标识
+                    $channel->basic_ack($key);
+                } catch (\Exception $exception) {
+                    //拒绝消费消息
+                    $channel->basic_nack($key, false, true);
+                }
+            }
+        }, true, false, 1000);
+
 ```

@@ -61,7 +61,7 @@ class MqService
      */
     public function consumePermanent($callback)
     {
-        $enhancedCallback = function ($msg)use($callback) {
+        $enhancedCallback = function ($msg) use ($callback) {
             try {
                 // 处理消息
                 $callback($msg->body);
@@ -81,6 +81,12 @@ class MqService
         }
     }
 
+    /**
+     * 批量消费消息--循环单条处理
+     * @param $callback //回调函数
+     * @param $limit //获取消息数量
+     * @return void
+     */
     public function consume($callback, $limit = 100)
     {
         // 拉取消息
@@ -95,6 +101,34 @@ class MqService
                 break; // 如果没有消息了，跳出循环
             }
         }
+    }
+
+    /**
+     * 批量消费消息--统一返回数据包,主要避免单条的insert,减少开销
+     * @param $callback //回调函数
+     * @param $isJson //消息是否是json格式数据,为true则解析成数组
+     * @param $noAck //是否自动确认消息
+     * @param $limit //获取消息数量
+     * @return void
+     */
+    public function consumeReturnData($callback, $isJson = false, $noAck = false, $limit = 100)
+    {
+        // 拉取消息
+        $data = [];
+        for ($i = 0; $i < $limit; $i++) {
+            // 禁用自动确认
+            $message = $this->channel->basic_get($this->queue, $noAck);
+            if ($message !== null) {
+                if ($noAck) {
+                    $data[] = $isJson ? json_decode($message->body, true) : $message->body;
+                } else {
+                    $data[$message->getDeliveryTag()] = $isJson ? json_decode($message->body, true) : $message->body;
+                }
+            } else {
+                break; // 如果没有消息了，跳出循环
+            }
+        }
+        $callback($data, $this->channel);
     }
 
     /**
